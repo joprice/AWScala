@@ -67,7 +67,7 @@ class Instance(val underlying: aws.model.Instance) {
   }
 
   def detachVolume(deviceName: String, volumeId: String)(implicit ec2: EC2) = {
-    ec2.detachVolume(instanceId, deviceName, volumeId)
+    ec2.detachVolume(deviceName, volumeId)
   }
 
   def getName: Option[String] = tags.get("Name")
