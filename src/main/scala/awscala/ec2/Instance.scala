@@ -4,6 +4,7 @@ import awscala._
 import scala.collection.JavaConverters._
 import com.amazonaws.services.{ ec2 => aws }
 import java.util.Date
+import aws.model.CreateVolumeRequest
 
 object Instance {
 
@@ -25,7 +26,52 @@ class Instance(val underlying: aws.model.Instance) {
     ec2.createImage(new aws.model.CreateImageRequest(instanceId, imageName))
   }
 
+  /**
+   * @param newSize size in gigabytes
+   */
+  def resizeVolume(newSize: Int)(implicit ec2: EC2) = {
+    val rootVolumeId = blockDeviceMappings.find(_.getDeviceName == rootDeviceName).map {
+      _.getEbs.getVolumeId
+    }.getOrElse {
+      throw new Exception("Could not get volume id of root device")
+    }
+
+    println(rootVolumeId)
+
+    //stop()
+
+    /*
+    val rootVolumeId = ???
+    detachVolume(rootDeviceName, rootVolumeId)
+
+    val snapshot = ??? //create snapshot from detached root volume
+
+    val request = (new CreateVolumeRequest)
+      //.withAvailabilityZone(rootVolume)
+      //.withEncrypted()
+      //.withIops()
+      //.withVolumeType // Gp2 Io1 Standard
+      .withSize(newSize)
+      .withSnapshotId(snapshot)
+
+    val result = ec2.createVolume(request)
+    val volumeId = result.getVolume().getVolumeId()
+    attachVolume(rootDeviceName, volumeId)
+    //getRootDeviceType
+    start()
+    */
+  }
+
+  def attachVolume(deviceName: String, volumeId: String)(implicit ec2: EC2) = {
+    ec2.attachVolume(instanceId, deviceName, volumeId)
+  }
+
+  def detachVolume(deviceName: String, volumeId: String)(implicit ec2: EC2) = {
+    ec2.detachVolume(instanceId, deviceName, volumeId)
+  }
+
   def getName: Option[String] = tags.get("Name")
+
   def name: String = tags("Name")
 
   def instanceId: String = underlying.getInstanceId

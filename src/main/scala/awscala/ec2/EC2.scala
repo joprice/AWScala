@@ -4,6 +4,7 @@ import awscala._
 import scala.collection.JavaConverters._
 import com.amazonaws.services.{ ec2 => aws }
 import scala.annotation.tailrec
+import aws.model.{ AttachVolumeRequest, DetachVolumeRequest, VolumeAttachment }
 
 object EC2 {
 
@@ -153,6 +154,23 @@ trait EC2 extends aws.AmazonEC2Async {
       def getList(r: DescribeReservedInstancesOfferingsResult) = r.getReservedInstancesOfferings()
     }
     reservedSequencer.sequence
+  }
+
+  def attachVolume(instanceId: String, deviceName: String, volumeId: String): VolumeAttachment = {
+    attachVolume(
+      (new AttachVolumeRequest)
+        .withInstanceId(instanceId)
+        .withDevice(deviceName)
+        .withVolumeId(volumeId)
+    ).getAttachment
+  }
+
+  def detachVolume(deviceName: String, volumeId: String): VolumeAttachment = {
+    detachVolume(
+      (new DetachVolumeRequest)
+        .withDevice(deviceName)
+        .withVolumeId(volumeId)
+    ).getAttachment
   }
 }
 
